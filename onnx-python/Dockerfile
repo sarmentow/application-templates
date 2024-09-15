@@ -25,8 +25,6 @@ ENV PATH="/opt/cartesi/bin:${PATH}"
 
 WORKDIR /opt/cartesi/dapp
 COPY ./requirements.txt .
-COPY ./onnxruntime_riscv-1.20.0-cp310-cp310-linux_riscv64.whl .
-COPY ./numpy-1.26.2-cp310-cp310-linux_riscv64.whl .
 COPY ./simple_nn.onnx .
 
 RUN <<EOF
