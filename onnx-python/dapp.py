@@ -1,10 +1,9 @@
 from os import environ
+import base64
 import numpy as np
 import onnxruntime as ort
 import logging
 import requests
-
-
 
 logging.basicConfig(level="INFO")
 logger = logging.getLogger(__name__)
@@ -12,15 +11,14 @@ logger = logging.getLogger(__name__)
 rollup_server = environ["ROLLUP_HTTP_SERVER_URL"]
 logger.info(f"HTTP rollup_server url is {rollup_server}")
 
-
 # Load the ONNX model
+MODEL_INPUT_SHAPE = (1, 10)
 model_path = "simple_nn.onnx"
 session = ort.InferenceSession(model_path)
 # Get the input and output names
 input_names = [session.get_inputs()[0].name]
 output_names = [session.get_outputs()[0].name]
-# Run inference
-outputs = session.run(output_names, {input_names[0]: np.random.randn(1, 10).astype('f')})
+
 
 def str2hex(str):
     """
@@ -28,12 +26,19 @@ def str2hex(str):
     """
     return "0x" + str.encode("utf-8").hex()
 
+def hex2str(hex):
+    """
+    Decodes a hex string into a regular string
+    """
+    return bytes.fromhex(hex[2:]).decode("utf-8")
+
 def handle_advance(data):
     logger.info(f"Received advance request data {data}")
-    status = "accept"
+    decoded_bytes = base64.b64decode(data)
+    outputs = session.run(output_names, {input_names[0]: np.frombuffer(decoded_bytes, dtype=np.float32).reshape(MODEL_INPUT_SHAPE)})
     try:
         response = requests.post(
-                rollup_server + "/notice", json={"payload": str2hex(str({"modelOutputs": str(outputs[0][0][0])}))}
+                rollup_server + "/notice", json={"payload": str2hex(str({"modelOutputs": str(outputs)}))}
         )
         logger.info(
             f"Received notice status {response.status_code} body {response.content}"
@@ -41,7 +46,7 @@ def handle_advance(data):
     except Exception as e:
         logger.error(f"Exception while handling advance:{e}")
 
-    return status
+    return "accept"
 
 
 def handle_inspect(data):
