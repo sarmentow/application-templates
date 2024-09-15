@@ -27,7 +27,7 @@ def handle_advance(data):
     status = "accept"
     try:
         response = requests.post(
-                rollup_server + "/notice", json={"payload": {"modelOutputs": str(outputs[0][0][0])}}
+                rollup_server + "/notice", json={"payload": str({"modelOutputs": str(outputs[0][0][0])})}
         )
         logger.info(
             f"Received notice status {response.status_code} body {response.content}"
