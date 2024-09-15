@@ -34,7 +34,7 @@ def hex2str(hex):
 
 def handle_advance(data):
     logger.info(f"Received advance request data {data}")
-    decoded_bytes = base64.b64decode(data)
+    decoded_bytes = base64.b64decode(hex2str(data["payload"]))
     outputs = session.run(output_names, {input_names[0]: np.frombuffer(decoded_bytes, dtype=np.float32).reshape(MODEL_INPUT_SHAPE)})
     try:
         response = requests.post(
