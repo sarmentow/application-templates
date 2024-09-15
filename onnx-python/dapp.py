@@ -22,12 +22,18 @@ output_names = [session.get_outputs()[0].name]
 # Run inference
 outputs = session.run(output_names, {input_names[0]: np.random.randn(1, 10).astype('f')})
 
+def str2hex(str):
+    """
+    Encodes a string as a hex string
+    """
+    return "0x" + str.encode("utf-8").hex()
+
 def handle_advance(data):
     logger.info(f"Received advance request data {data}")
     status = "accept"
     try:
         response = requests.post(
-                rollup_server + "/notice", json={"payload": str({"modelOutputs": str(outputs[0][0][0])})}
+                rollup_server + "/notice", json={"payload": str2hex(str({"modelOutputs": str(outputs[0][0][0])}))}
         )
         logger.info(
             f"Received notice status {response.status_code} body {response.content}"
